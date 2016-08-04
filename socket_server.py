@@ -1,4 +1,3 @@
-# Socket server in python using select function
 
 import socket, select
 import signal
@@ -13,14 +12,15 @@ class SimpleSignalHandler:
   def exit_gracefully(self,signum, frame):
     self.should_exit = True
 
+
 class Client:
     addr = None
 
     def __init__(self, addr):
         self.addr = addr
 
-class Server:
 
+class Server:
     active_sockets = []
     clients_info = {}
     should_terminate = False
@@ -42,10 +42,11 @@ class Server:
         for sock in self.active_sockets:
             sock.close()
 
-        # clear list
+        # clear all connections list
         self.active_sockets[:] = []
         self.clients_info.clear()
 
+        # close listening socket
         self.server_socket.close()
 
         self.is_running = False
