@@ -23,7 +23,6 @@ class Client:
 class Server:
     active_sockets = []
     clients_info = {}
-    should_terminate = False
     is_running = False
 
     def __init__(self, host, port):
@@ -59,8 +58,8 @@ class Server:
 
     def select(self, timeout=1):
         try:
-            # Get the list sockets which are ready to be read through select
-            read_sockets,write_sockets,error_sockets = select.select(self.active_sockets,[],[], timeout)
+            # get the list of sockets which are ready to be read
+            read_sockets,write_sockets,error_sockets = select.select(self.active_sockets,[] , self.active_sockets, timeout)
 
             for sock in read_sockets:
 
@@ -74,16 +73,20 @@ class Server:
 
                 # got message from a client
                 else:
+                    # in Windows, when a TCP program closes abruptly,
+                    # a "Connection reset by peer" exception will be thrown
                     try:
-                        # in Windows, sometimes when a TCP program closes abruptly,
-                        # a "Connection reset by peer" exception will be thrown
                         data = sock.recv(RECV_BUFFER)
-                        # echo back the client message
+
+                        # if client socket has been closed - the received buffer will be empty
                         if len(data) > 0:
+                            # echo back the client message
                             sock.send(data)
                         else:
+                            # client disconnected
                             self.disconnect_client(sock)
-                    # client disconnected, so remove from socket list
+
+                    # client disconnected (Windows)
                     except:
                         self.disconnect_client(sock)
                         continue
@@ -97,7 +100,6 @@ class Server:
 
 if __name__ == "__main__":
 
-    CONNECTION_LIST = []    # list of socket clients
     RECV_BUFFER = 1024      # buffer size
     PORT = 8000
     MAX_CLIENTS = 10
